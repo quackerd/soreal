@@ -4,7 +4,11 @@
 
     persist_config off
 
-    cert_issuer acme
+    cert_issuer acme {
+        disable_tlsalpn_challenge
+    }
+
+    auto_https disable_redirects
 
     storage file_system /opt/soreal/data/caddy/data
 
@@ -43,9 +47,9 @@ http://:12345 {
     }
 }
 
-{% if SELF_SIGN %}
 https://{{ HOST }}:12346 {
-    tls internal
     bind 127.0.0.1
-}
+{% if SELF_SIGN %}
+    tls internal
 {% endif %}
+}
