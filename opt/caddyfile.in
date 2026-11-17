@@ -1,9 +1,14 @@
+# Global Options Block
 {
     admin off
 
     persist_config off
 
     cert_issuer acme
+
+    storage file_system /opt/soreal/data/caddy/data
+
+    skip_install_trust
 
     http_port 80
 

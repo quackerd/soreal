@@ -25,7 +25,7 @@ su-exec docker python3 "${ROOT_DIR}/init.py"
         XDG_CONFIG_HOME="${DATA_DIR}/caddy/config" \
         XDG_DATA_HOME="${DATA_DIR}/caddy/data" \
         HOME="${DATA_DIR}/caddy/home" \
-        /usr/bin/caddy run --config "${ROOT_DIR}/caddyfile" --adapter caddyfile
+        /usr/sbin/caddy run --config "${ROOT_DIR}/caddyfile" --adapter caddyfile
     status=$?
     echo "Caddy exited with status ${status}..." >&2
     kill -TERM "$$"
