@@ -1,0 +1,48 @@
+name: soreal
+
+networks:
+  brd-soreal:
+    external: false
+
+services:
+  soreal:
+    image: quackerd/soreal:latest
+    ports:
+      - 80:80/tcp # port 80 must be identity mapped for ACME challenges
+      - ${PORT:-443}:${PORT:-443}/tcp # xray (VLESS + Vision + TLS) port; any port except 80 and 12345
+    environment:
+      HOST: "example.com" # Your domain name
+      PORT: "${PORT:-443}" # which port you use to access xray? for QR code and shared link generation; must not be 80, 12345, 12346
+      USER0: "alice" # An arbitrary number of users; X must be strictly incrementing by 1.
+      USER1: "bob"
+      # ...
+      SITE_URL: "decoy:3000" # address of the decoy site backend; comment out to return 404 for all non-proxied requests
+      UPSTREAM_URL: "filter:1080" # upstream socks5 proxy address (carries UDP too), set empty to dial directly
+      LOG_LEVEL: "info"
+      SELF_SIGN: "false"
+    restart: unless-stopped
+    networks:
+      - brd-soreal
+    volumes:
+      - ./data:/opt/soreal/data:Z # contains logs, certs, etc.
+
+  decoy:
+    image: quackerd/linux-docs:latest # full linux docs build with tarballs @ port 3000
+                                      # see https://git.quacker.org/d/linux-docs
+    restart: unless-stopped
+    networks:
+      - brd-soreal
+
+  filter:
+    image: quackerd/singbox-filter:latest # singbox filter backend, mixed ingree @ port 1080
+                                          # see https://git.quacker.org/d/singbox-filter
+    environment:
+      BLOCK_CN: "true"
+      BLOCK_LOCAL: "true"
+      BLOCK_ADS: "standard"
+      LOG_LEVEL: "warn"
+    restart: unless-stopped
+    networks:
+      - brd-soreal
+    volumes:
+      - ./filter:/opt/singbox-filter/data:Z # contains cache.db

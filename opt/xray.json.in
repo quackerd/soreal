@@ -1,0 +1,72 @@
+{
+    "log": {
+        "loglevel": "{{ LOG_LEVEL }}"
+    },
+    "dns": {
+        "servers": [
+            "1.1.1.1",
+            "1.0.0.1",
+            "2606:4700:4700::1111",
+            "2606:4700:4700::1001"
+        ],
+        "queryStrategy": "UseIP"
+    },
+    "inbounds": [
+        {
+            "listen": "::",
+            "port": {{ PORT }},
+            "protocol": "vless",
+            "settings": {
+                "clients": {{ USERS }},
+                "decryption": "none",
+                "fallbacks": [
+                    {
+                        "dest": "127.0.0.1:12345"
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "tcp",
+                "security": "tls",
+                "tlsSettings": {
+                    "certificates": [
+                        {
+                            "certificateFile": "{{ CERT_FILE }}",
+                            "keyFile": "{{ KEY_FILE }}"
+                        }
+                    ]
+                }
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": [
+                    "http",
+                    "tls",
+                    "quic"
+                ]
+            }
+        }
+    ],
+    "outbounds": [
+        {% if UPSTREAM_URL %}
+        {
+            "protocol": "socks",
+            "settings": {
+                "servers": [
+                    {
+                        "address": "{{ UPSTREAM_URL.rsplit(':', 1)[0] }}",
+                        "port": {{ UPSTREAM_URL.rsplit(':', 1)[1] }}
+                    }
+                ]
+            }
+        }
+        {% else %}
+        {
+            "protocol": "freedom",
+            "settings": {
+                "domainStrategy": "UseIP"
+            }
+        }
+        {% endif %}
+    ]
+}
