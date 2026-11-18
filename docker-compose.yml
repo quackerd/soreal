@@ -18,7 +18,8 @@ services:
       # ...
       SITE_URL: "decoy:3000" # address of the decoy site backend; comment out to return 404 for all non-proxied requests
       UPSTREAM_URL: "filter:1080" # upstream socks5 proxy address (carries UDP too), set empty to dial directly
-      LOG_LEVEL: "info"
+      LOG_LEVEL: "info" # xray log level (debug/info/warning/error/none)
+      CADDY_LOG_LEVEL: "info" # access logs of the 80 redirect + internal 12345 site (debug/info/warn/error)
       SELF_SIGN: "false"
     restart: unless-stopped
     networks:

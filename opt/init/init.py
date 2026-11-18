@@ -16,6 +16,7 @@ class xray_args:
     port: int
     self_sign: bool
     log_level: str
+    caddy_log_level: str
     site_url: str
     upstream_url: str
     users: list[str]
@@ -63,6 +64,7 @@ class xray_args:
         self.host = self._get_env("HOST", "", required=True)
         self.port = int(self._get_env("PORT", "443"))
         self.log_level = self._get_env("LOG_LEVEL", default="warning")
+        self.caddy_log_level = self._get_env("CADDY_LOG_LEVEL", default="info")
         self.site_url = self._get_env("SITE_URL", "")
         self.upstream_url = self._get_env("UPSTREAM_URL", "")
         self.self_sign = self._str_to_bool(self._get_env("SELF_SIGN", "false"))
@@ -92,6 +94,7 @@ class xray_args:
             f"SITE_URL: {self.site_url}\n"
             f"UPSTREAM_URL: {self.upstream_url}\n"
             f"LOG_LEVEL: {self.log_level}\n"
+            f"CADDY_LOG_LEVEL: {self.caddy_log_level}\n"
             f"SELF_SIGN: {self.self_sign}\n"
             f"USERS: {self.users}"
         )
@@ -129,6 +132,7 @@ def build_jinja_dict(args: xray_args) -> dict[str, Any]:
     jinja_dict["SELF_SIGN"] = args.self_sign
     jinja_dict["SITE_URL"] = args.site_url
     jinja_dict["LOG_LEVEL"] = args.log_level
+    jinja_dict["CADDY_LOG_LEVEL"] = args.caddy_log_level
     jinja_dict["USERS"] = build_xray_clients(args)
     jinja_dict["UPSTREAM_URL"] = args.upstream_url
     jinja_dict["CERT_FILE"] = os.environ["CERT_FILE"]
