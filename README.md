@@ -8,6 +8,7 @@
 - [Caddy](https://github.com/caddyserver/caddy) (installed from apk) handles certificate management: it serves the ACME HTTP-01 challenges on port `80` (redirecting to the public port) and runs an **internal** plain-HTTP `12345` listener speaking HTTP/1.1 and cleartext HTTP/2 (h2c), where it reverse-proxies to the decoy site (`SITE_URL`) or returns `404`.
 - [Xray](https://github.com/XTLS/Xray-core) listens on `443` with VLESS + Vision + TLS and loads the certificate Caddy generated: VLESS clients are served in-place, and all other traffic (browsers, probes) is forwarded to Caddy's `12345` site via Xray's fallback mechanism.
 - Xray is launched only after Caddy has obtained the certificate and the `12345` fallback site is listening.
+- Both processes run supervised under [s6-overlay](https://github.com/just-containers/s6-overlay): a one-shot `init` service renders the configs, then Caddy and Xray start as supervised longruns and are restarted if they ever exit.
 
 ## Features
 - A clean, simple deployment built using Xray-core (VLESS + `xtls-rprx-vision` + TLS) with Caddy for automatic certificate management.
@@ -34,9 +35,9 @@
 ## Docker volume
 Bind mount a local folder to `/opt/soreal/data` to persist settings and certificates across container reboots. Make sure the local folder is owned by or accessible to uid 1000 and gid 1000.
 
-soreal stores Caddy's generated configuration, data and certificates under `caddy`. The certificate Xray serves is whichever Caddy issued: under `caddy/data/certificates/local` when `SELF_SIGN` is enabled, or under `caddy/data/certificates/acme-v02.api.letsencrypt.org-directory` otherwise. Xray watches the certificate file it loads, so renewals hot-reload without a restart.
+soreal stores Caddy's data and certificates under `caddy`, and Xray's `error.log` and `access.log` under `xray`. The certificate Xray serves is whichever Caddy issued: under `caddy/certificates/local` when `SELF_SIGN` is enabled, or under `caddy/certificates/acme-v02.api.letsencrypt.org-directory` otherwise. Xray watches the certificate file it loads, so renewals hot-reload without a restart.
 
-It also writes per-user `link.txt` and `qrcode.png` files under `/opt/soreal/users`, which is outside the persisted volume. The same links and QR codes are printed to the container log on every start.
+It also writes per-user `link.txt` and `qrcode.png` files under `/opt/init/users`, which is outside the persisted volume. The same links and QR codes are printed to the container log on every start.
 
 ## How to update?
 - `docker compose down`
@@ -49,7 +50,7 @@ It also writes per-user `link.txt` and `qrcode.png` files under `/opt/soreal/use
 - HTTP/3 is not available in this setup: Xray owns the `PORT` (TCP) and the fallback site runs on the internal `12345`.
 
 ## Troubleshooting
-- Use `docker logs` to debug Caddy startup failures (certificate issuance, port 80 reachability) and the logs of the `filter` and `decoy` containers for their own.
+- Use `docker logs` to debug Caddy startup failures (certificate issuance, port 80 reachability) and the logs of the `filter` and `decoy` containers for their own. Xray logs to `data/xray/error.log` (verbosity set by `LOG_LEVEL`) and `data/xray/access.log`.
 - If Xray never launches, Caddy has not obtained a certificate: check that port `80` is identity-mapped and reachable, and that `HOST` points to your server. The ACME issuer is pinned to Let's Encrypt (`cert_issuer acme`), so Caddy's ZeroSSL fallback is intentionally disabled to keep the certificate path deterministic.
 - Note on Reality: [Reality](https://xtls.github.io/document/level-2/reality.html) trades your own certificate for one borrowed from a target site, which helps when the domain itself is blocked or fingerprinted. Since this setup already holds valid certificates for `HOST` and falls back to a decoy site, plain TLS + Vision provides equivalent active-probing resistance with fully legitimate TLS.
 - If you receive a warning about `"failed to sufficiently increase receive buffer size"`, you can simply ignore the warning. Otherwise follow the instructions [here](https://github.com/quic-go/quic-go/wiki/UDP-Buffer-Sizes). Note that these options must be set on *HOST*. You can use `/etc/sysctl.conf` to persist the settings across reboots.

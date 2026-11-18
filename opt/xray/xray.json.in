@@ -1,5 +1,7 @@
 {
     "log": {
+        "access": "/opt/soreal/data/xray/access.log",
+        "error": "/opt/soreal/data/xray/error.log",
         "loglevel": "{{ LOG_LEVEL }}"
     },
     "dns": {

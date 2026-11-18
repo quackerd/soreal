@@ -7,7 +7,8 @@ from typing import Any
 
 import jinja2
 
-CONFIG_ROOT = Path("/opt/soreal")
+RENDER_ROOTS = [Path("/opt/caddy"), Path("/opt/xray")]
+USERS_DIR = Path("/opt/init/users")
 
 
 class xray_args:
@@ -159,10 +160,11 @@ def main():
     template = build_jinja_dict(args)
 
     print("Generating shareable links...")
-    gen_shareable_links(CONFIG_ROOT / "users", args)
+    gen_shareable_links(USERS_DIR, args)
 
     print("Processing config files...")
-    process_directory(CONFIG_ROOT, template)
+    for root in RENDER_ROOTS:
+        process_directory(root, template)
 
     print("Initialization completed.")
 

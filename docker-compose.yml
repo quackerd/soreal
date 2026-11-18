@@ -6,7 +6,7 @@ networks:
 
 services:
   soreal:
-    image: soreal:latest
+    image: docker.io/quackerd/soreal:latest
     ports:
       - 80:80/tcp # port 80 must be identity mapped for ACME challenges
       - 443/tcp # xray (VLESS + Vision + TLS) port; any port except 80 and 12345, 12346

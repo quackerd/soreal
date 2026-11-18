@@ -2,7 +2,7 @@ FROM alpine:latest
 
 ARG ROOT_DIR="/opt/soreal"
 
-RUN apk add --no-cache python3 py3-jinja2 libqrencode-tools ca-certificates su-exec caddy
+RUN apk add --no-cache python3 py3-jinja2 libqrencode-tools ca-certificates caddy s6-overlay
 
 #
 #  GID/UID, initial directory
@@ -22,24 +22,21 @@ apk add --no-cache --virtual .build-deps curl jq unzip
 
 DOWNLOAD_URL=$(curl -fsSL https://api.github.com/repos/XTLS/Xray-core/releases/latest \
   | jq -r '.assets[] | select(.name == "Xray-linux-64.zip") | .browser_download_url')
-mkdir -p "${ROOT_DIR}/xray"
+mkdir -p /opt/xray
 curl -fsSL "${DOWNLOAD_URL}" -o /tmp/xray.zip
-unzip -o /tmp/xray.zip -d "${ROOT_DIR}/xray/"
-chmod +x "${ROOT_DIR}/xray/xray"
+unzip -o /tmp/xray.zip -d /opt/xray/
+chmod +x /opt/xray/xray
 echo "Xray: $DOWNLOAD_URL"
 
-chown -R docker:docker "${ROOT_DIR}/xray"
+chown -R docker:docker /opt/xray
 
 apk del .build-deps
 EOF
 
-#
-# Configs
-#
-COPY --chown=docker:docker ./opt "${ROOT_DIR}/"
+COPY --chown=docker:docker ./opt /opt/
 
-RUN chmod +x "${ROOT_DIR}/entrypoint.sh"
+COPY --chmod=755 ./s6 /etc/s6-overlay/s6-rc.d/
 
 EXPOSE 80
 VOLUME ${ROOT_DIR}/data
-ENTRYPOINT ["/opt/soreal/entrypoint.sh"]
+ENTRYPOINT ["/init"]

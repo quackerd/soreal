@@ -1,0 +1,2 @@
+#!/command/with-contenv sh
+exec s6-setuidgid docker /usr/sbin/caddy run --config /opt/caddy/caddyfile --adapter caddyfile

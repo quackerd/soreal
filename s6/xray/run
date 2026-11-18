@@ -1,0 +1,6 @@
+#!/command/with-contenv sh
+set -eu
+
+until [ -f "${CERT_FILE}" ] && [ -f "${KEY_FILE}" ]; do sleep 1; done
+
+exec s6-setuidgid docker /opt/xray/xray run -c /opt/xray/xray.json
