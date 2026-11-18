@@ -2,7 +2,7 @@
 set -eu
 
 DATA_DIR=/opt/soreal/data
-mkdir -p "${DATA_DIR}/caddy" "${DATA_DIR}/xray"
+mkdir -p "${DATA_DIR}/caddy" "${DATA_DIR}/xray" "${DATA_DIR}/users"
 chown -R docker:docker "${DATA_DIR}"
 
 HOST_LC=$(printf '%s' "${HOST}" | tr 'A-Z' 'a-z')

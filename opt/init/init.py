@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import subprocess
 import urllib.parse
 from pathlib import Path
@@ -142,6 +143,9 @@ def build_jinja_dict(args: xray_args) -> dict[str, Any]:
 
 
 def gen_shareable_links(path: Path, args: xray_args) -> None:
+    if os.path.isdir(path):
+        shutil.rmtree(path)  # directory must reflect the current USERx env only
+
     for user, link in args.userlinks.items():
         print(f'\n===== User "{user}" =====')
         print(link)
