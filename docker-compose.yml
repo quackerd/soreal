@@ -9,18 +9,21 @@ services:
     image: docker.io/quackerd/soreal:latest
     ports:
       - 80:80/tcp # port 80 must be identity mapped for ACME challenges
-      - 443/tcp # xray (VLESS + Vision + TLS) port; any port except 80 and 12345, 12346
+      - 443:443/tcp # xray port; any port except 80 and 12345, 12346
+                    # both external and internal ports must change at the same time
+                    # e.g. 8443:8443/tcp, 3000:3000/tcp
     environment:
-      HOST: "example.com"
-      PORT: "443" # which port you use to access xray? must not be 80, 12345, 12346
-      USER0: "alice" # An arbitrary number of users; X must be strictly incrementing by 1.
+      HOST: "example.com" # your VPS's hostname
+      PORT: "443" # which port you use to access xray? Must be the same as the xray port exposed above
+      USER0: "alice" # an arbitrary number of users; X must be strictly incrementing by 1
       USER1: "bob"
+      USER2: "eve"
       # ...
-      SITE_URL: "decoy:3000" # address of the decoy site backend; comment out to return 404 for all non-proxied requests
-      UPSTREAM_URL: "filter:1080" # upstream socks5 proxy address (carries UDP too), set empty to dial directly
-      LOG_LEVEL: "info" # xray log level (debug/info/warning/error/none)
-      CADDY_LOG_LEVEL: "info" # access logs of the 80 redirect + internal 12345 site (debug/info/warn/error)
-      SELF_SIGN: "false"
+      SITE_URL: "decoy:3000" # address of the decoy site backend. Keep empty to return 404 for all non-proxied requests
+      UPSTREAM_URL: "filter:1080" # upstream socks5 proxy address. Keep empty to dial directly
+      LOG_LEVEL: "warning" # xray log level (debug/info/warning/error/none)
+      CADDY_LOG_LEVEL: "warn" # caddy log level (debug/info/warn/error)
+      SELF_SIGN: "false" # whether to issue self signed certificates
     restart: unless-stopped
     networks:
       - brd-soreal
@@ -29,14 +32,14 @@ services:
 
   decoy:
     image: docker.io/quackerd/linux-docs:latest # full linux docs build with tarballs @ port 3000
-                                      # see https://git.quacker.org/d/linux-docs
+                                                # see https://git.quacker.org/d/linux-docs
     restart: unless-stopped
     networks:
       - brd-soreal
 
   filter:
     image: docker.io/quackerd/singbox-filter:latest # singbox filter backend, mixed ingree @ port 1080
-                                          # see https://git.quacker.org/d/singbox-filter
+                                                    # see https://git.quacker.org/d/singbox-filter
     environment:
       BLOCK_CN: "true"
       BLOCK_LOCAL: "true"

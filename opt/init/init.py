@@ -8,7 +8,7 @@ from typing import Any
 import jinja2
 
 RENDER_ROOTS = [Path("/opt/caddy"), Path("/opt/xray")]
-USERS_DIR = Path("/opt/init/users")
+USERS_DIR = Path("/opt/soreal/data/users")
 
 
 class xray_args:
