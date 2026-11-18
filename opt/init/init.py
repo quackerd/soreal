@@ -64,7 +64,7 @@ class xray_args:
         self.host = self._get_env("HOST", "", required=True)
         self.port = int(self._get_env("PORT", "443"))
         self.log_level = self._get_env("LOG_LEVEL", default="warning")
-        self.caddy_log_level = self._get_env("CADDY_LOG_LEVEL", default="info")
+        self.caddy_log_level = self._get_env("CADDY_LOG_LEVEL", default="warn")
         self.site_url = self._get_env("SITE_URL", "")
         self.upstream_url = self._get_env("UPSTREAM_URL", "")
         self.self_sign = self._str_to_bool(self._get_env("SELF_SIGN", "false"))
