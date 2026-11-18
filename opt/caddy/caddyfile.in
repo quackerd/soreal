@@ -15,8 +15,12 @@
 
     http_port 80
 
-    servers :12345 {
+    servers 127.0.0.1:12345 {
         protocols h1 h2c
+    }
+
+    servers {{ HOST }}:80 {
+        protocols h1
     }
 
     log {
@@ -32,9 +36,7 @@ http://{{ HOST }}:80 {
 
 # Internal fallback site (not exposed, plain HTTP): Xray terminates TLS on 443
 # and forwards non-VLESS traffic here.
-http://:12345 {
-    bind 127.0.0.1
-
+http://127.0.0.1:12345 {
     encode
 
     handle {
