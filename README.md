@@ -13,7 +13,7 @@
 ## Features
 - A clean, simple deployment built using Xray-core (VLESS + `xtls-rprx-vision` + TLS) with Caddy for automatic certificate management.
 - Blocks CN traffic and ADs using [HaGeZi](https://github.com/hagezi/dns-blocklists) Pro(++), TIF and Spam TLDs, via the bundled `filter` container.
-- Uses [Cloudflare](https://one.one.one.one) DNS (IPv4 and IPv6) for Xray's upstream name resolution.
+- Uses [Cloudflare](https://one.one.one.one) DNS over HTTPS (RFC 8484, HTTP/2 with a Chrome uTLS fingerprint) for Xray's upstream name resolution. Both IPv4 and IPv6 resolvers are configured; queries are sent over TLS to the resolvers' IPs (no plaintext DNS leaves the container) and follow the same outbound as regular traffic, so they are filtered too.
 - An optional decoy site served by a separate container using [reputable sources](https://github.com/torvalds/linux).
 - Automatic QR code and link generation for popular APPs, printed to the container log.
 - Automatic weekly builds.
@@ -52,6 +52,7 @@ It also writes per-user `link.txt` and `qrcode.png` files under `/opt/init/users
 
 ## Troubleshooting
 - Use `docker logs` to debug Caddy startup failures (certificate issuance, port 80 reachability) and the logs of the `filter` and `decoy` containers for their own. Xray logs to `data/xray/error.log` (verbosity set by `LOG_LEVEL`) and `data/xray/access.log`; Caddy's access logs are in `data/caddy/access.log` (verbosity set by `CADDY_LOG_LEVEL`).
+- If name resolution fails, check `data/xray/error.log`: DNS upstreams are DoH endpoints at `1.1.1.1`, `1.0.0.1` and the two Cloudflare IPv6 addresses, tried in that order. The IPv4 entries are tried first, so a broken IPv6 path is harmless; all four being unreachable means the container has no egress (or, when `UPSTREAM_URL` is set, the upstream filter blocks them). At `LOG_LEVEL: info` each created resolver logs as `DNS: created DOH client for ...`.
 - If Xray never launches, Caddy has not obtained a certificate: check that port `80` is identity-mapped and reachable, and that `HOST` points to your server. The ACME issuer is pinned to Let's Encrypt (`cert_issuer acme`), so Caddy's ZeroSSL fallback is intentionally disabled to keep the certificate path deterministic.
 - Note on Reality: [Reality](https://xtls.github.io/document/level-2/reality.html) trades your own certificate for one borrowed from a target site, which helps when the domain itself is blocked or fingerprinted. Since this setup already holds valid certificates for `HOST` and falls back to a decoy site, plain TLS + Vision provides equivalent active-probing resistance with fully legitimate TLS.
 - If you receive a warning about `"failed to sufficiently increase receive buffer size"`, you can simply ignore the warning. Otherwise follow the instructions [here](https://github.com/quic-go/quic-go/wiki/UDP-Buffer-Sizes). Note that these options must be set on *HOST*. You can use `/etc/sysctl.conf` to persist the settings across reboots.
