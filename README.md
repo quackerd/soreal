@@ -1,8 +1,8 @@
-# soreal: painless Xray (VLESS + TLS) in Docker!
+# soreal: painless Xray (vless + xtls-vision + decoy site) in Docker!
 [![Build](https://git.quacker.org/d/soreal/badges/workflows/build.yml/badge.svg?branch=master&label=build)](https://git.quacker.org/d/soreal/actions)
 
 ## What is soreal?
-`soreal` offers easy 5-minute setups and braindead configurations for Xray using vless + xtls-vision.
+`soreal` offers easy 5-minute setups and braindead configurations for Xray using vless + xtls-vision + decoy site.
 
 ## Features
 - A clean, simple deployment built using official [Xray](https://github.com/XTLS/Xray-core) and [Caddy](https://github.com/caddyserver/caddy) for automatic certificate management.
