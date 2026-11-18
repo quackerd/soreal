@@ -19,7 +19,7 @@
         protocols h1 h2c
     }
 
-    servers {{ HOST }}:80 {
+    servers :80 {
         protocols h1
     }
 
@@ -43,8 +43,12 @@ http://{{ HOST }}:80 {
 }
 
 # Internal fallback site (not exposed, plain HTTP): Xray terminates TLS on 443
-# and forwards non-VLESS traffic here.
-http://127.0.0.1:12345 {
+# and forwards non-VLESS traffic here. The address is host-less on purpose:
+# fallback keeps the client's original Host header, so matching a host (e.g.
+# 127.0.0.1) would never route. `bind` keeps the listener on loopback and makes
+# it match the `servers 127.0.0.1:12345` protocols above.
+http://:12345 {
+    bind 127.0.0.1
     encode
 
     log {
